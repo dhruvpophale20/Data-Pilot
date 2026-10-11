@@ -89,7 +89,7 @@ def validation_page():
 
     # Export section
     st.divider()
-    display_export_section(processed_df, file_name, summary, validation_report)
+    display_export_section(original_df, processed_df, file_name, summary, validation_report)
 
     # Full pipeline summary
     with st.expander("📋 Full Pipeline Summary", expanded=False):
@@ -176,6 +176,7 @@ def display_validation_results(validation_report: dict):
 
 
 def display_export_section(
+    original_df: pd.DataFrame,
     processed_df: pd.DataFrame,
     original_file_name: str,
     summary: dict,

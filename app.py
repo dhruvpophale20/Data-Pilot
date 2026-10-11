@@ -26,6 +26,7 @@ from app_pages.quality_analysis import quality_analysis_page
 from app_pages.ai_recommendations import ai_recommendations_page
 from app_pages.preprocessing import preprocessing_page
 from app_pages.validation import validation_page
+from app_pages.column_selection import column_selection_page
 from app_pages.footer import footer_page, render_footer
 from app_pages.navigation_registry import register_pages
 
@@ -36,6 +37,7 @@ pages = [
     st.Page(ai_recommendations_page, title="AI Recommendations", icon=":material/psychology:"),
     st.Page(preprocessing_page, title="Preprocessing Pipeline", icon=":material/build:"),
     st.Page(validation_page, title="Validation & Results", icon=":material/check_circle:"),
+    st.Page(column_selection_page, title="Select Dataset Columns", icon=":material/view_column:"),
     st.Page(footer_page, title="About The Developers", icon=":material/notes:"),
 ]
 
