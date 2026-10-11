@@ -5,6 +5,8 @@ Runs comprehensive quality checks on the dataset and displays results.
 Uses cached profiling and quality check functions with background refresh.
 """
 
+import logging
+
 import streamlit as st
 import pandas as pd
 from typing import Optional
@@ -18,6 +20,8 @@ from app_pages.prewarming import (
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+
+logger = logging.getLogger(__name__)
 
 
 def quality_analysis_page():
@@ -113,9 +117,10 @@ def run_quality_analysis(
 
             status.update(label="✅ Quality analysis complete!", state="complete")
 
-        except Exception as e:
-            status.update(label=f"❌ Analysis failed: {e}", state="error")
-            st.error(f"Quality analysis failed: {e}")
+        except Exception:
+            logger.exception("Quality analysis failed")
+            status.update(label="❌ Analysis failed", state="error")
+            st.error("Quality analysis failed. Please try again.")
 
 
 def display_quality_report(quality_report: dict, df: pd.DataFrame):

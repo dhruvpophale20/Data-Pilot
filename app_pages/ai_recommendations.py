@@ -5,6 +5,8 @@ Generates AI-powered preprocessing recommendations using NVIDIA NIM.
 Displays recommendations with confidence scores and approval workflow.
 """
 
+import logging
+
 import streamlit as st
 import pandas as pd
 from typing import Optional, List
@@ -16,6 +18,8 @@ from app_pages.prewarming import (
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+
+logger = logging.getLogger(__name__)
 
 
 def ai_recommendations_page():
@@ -57,8 +61,9 @@ def ai_recommendations_page():
             st.error("❌ NVIDIA_API_KEY not configured")
             st.info("Set NVIDIA_API_KEY in your environment or Streamlit Cloud Secrets to enable AI recommendations")
             return
-        except Exception as e:
-            st.error(f"❌ NIM client error: {e}")
+        except Exception:
+            logger.exception("NIM client initialization failed")
+            st.error("❌ Could not connect to the recommendation service. Please try again later.")
             return
 
         use_compact_prompt = st.checkbox(
@@ -105,8 +110,9 @@ def generate_recommendations(quality_report: dict, use_compact_prompt: bool = Tr
             )
 
             if "error" in result:
-                status.update(label=f"❌ Failed: {result['error']}", state="error")
-                st.error(f"AI recommendation failed: {result['error']}")
+                logger.error("AI recommendation failed: %s", result["error"])
+                status.update(label="❌ Recommendation generation failed", state="error")
+                st.error("AI recommendations could not be generated. Please try again.")
                 st.session_state.ai_rec_failed = True
                 return
 
@@ -114,9 +120,10 @@ def generate_recommendations(quality_report: dict, use_compact_prompt: bool = Tr
             st.session_state.ai_rec_failed = False
             status.update(label="✅ Recommendations generated!", state="complete")
 
-        except Exception as e:
-            status.update(label=f"❌ Failed: {e}", state="error")
-            st.error(f"Failed to generate recommendations: {e}")
+        except Exception:
+            logger.exception("Failed to generate AI recommendations")
+            status.update(label="❌ Recommendation generation failed", state="error")
+            st.error("Failed to generate recommendations. Please try again.")
             st.session_state.ai_rec_failed = True
 
 

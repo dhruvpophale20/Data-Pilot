@@ -5,6 +5,8 @@ Runs comprehensive post-preprocessing validation and displays final results.
 Allows downloading the processed dataset.
 """
 
+import logging
+
 import streamlit as st
 import pandas as pd
 import json
@@ -19,6 +21,8 @@ from app_pages.prewarming import (
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+
+logger = logging.getLogger(__name__)
 
 
 def validation_page():
@@ -122,9 +126,10 @@ def run_validation_with_progress(
 
             status.update(label="✅ Validation complete!", state="complete")
 
-        except Exception as e:
-            status.update(label=f"❌ Validation failed: {e}", state="error")
-            st.error(f"Validation failed: {e}")
+        except Exception:
+            logger.exception("Validation failed")
+            status.update(label="❌ Validation failed", state="error")
+            st.error("Validation failed. Please check your dataset and try again.")
 
 
 def display_validation_results(validation_report: dict):
@@ -326,9 +331,10 @@ def generate_full_report(
 
             status.update(label="✅ Report generated!", state="complete")
 
-        except Exception as e:
-            status.update(label=f"❌ Failed: {e}", state="error")
-            st.error(f"Failed to generate report: {e}")
+        except Exception:
+            logger.exception("Failed to generate full pipeline report")
+            status.update(label="❌ Report generation failed", state="error")
+            st.error("Could not generate the full report. Please try again.")
 
 
 def display_full_pipeline_summary(

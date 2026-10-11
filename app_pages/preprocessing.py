@@ -5,6 +5,8 @@ Applies approved preprocessing actions to the dataset.
 Shows real-time progress and allows preview of changes.
 """
 
+import logging
+
 import streamlit as st
 import pandas as pd
 from typing import Optional
@@ -16,6 +18,8 @@ from app_pages.prewarming import (
     format_bytes,
 )
 from app_pages.navigation_registry import get_page
+
+logger = logging.getLogger(__name__)
 
 
 def preprocessing_page():
@@ -168,9 +172,10 @@ def run_pipeline_with_progress(df: pd.DataFrame, actions: list):
 
             status.update(label="✅ Pipeline executed successfully!", state="complete")
 
-        except Exception as e:
-            status.update(label=f"❌ Pipeline failed: {e}", state="error")
-            st.error(f"Preprocessing pipeline failed: {e}")
+        except Exception:
+            logger.exception("Preprocessing pipeline failed")
+            status.update(label="❌ Pipeline failed", state="error")
+            st.error("Preprocessing failed. Please review your selected actions and try again.")
 
 
 def display_pipeline_results(original_df: pd.DataFrame, processed_df: pd.DataFrame, summary: dict):

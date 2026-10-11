@@ -3,7 +3,11 @@ Data-Pilot Streamlit Application
 Main entry point with multi-page navigation and pre-warming strategy.
 """
 
+import logging
+
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 # Page configuration - MUST be the first Streamlit command
 st.set_page_config(
@@ -37,13 +41,17 @@ pages = [
     st.Page(ai_recommendations_page, title="AI Recommendations", icon=":material/psychology:"),
     st.Page(preprocessing_page, title="Preprocessing Pipeline", icon=":material/build:"),
     st.Page(validation_page, title="Validation & Results", icon=":material/check_circle:"),
-    st.Page(column_selection_page, title="Select Dataset Columns", icon=":material/view_column:"),
+    st.Page(column_selection_page, title="Select Dataset Columns · Beta", icon=":material/view_column:"),
     st.Page(footer_page, title="About The Developers", icon=":material/notes:"),
 ]
 
 # Navigation
 register_pages(pages)
 pg = st.navigation(pages, position="sidebar")
-pg.run()
-if pg.title != "Footer":
-    render_footer()
+try:
+    pg.run()
+    if pg.title != "About The Developers":
+        render_footer()
+except Exception:
+    logger.exception("Unhandled error while rendering page '%s'", pg.title)
+    st.error("Something went wrong while loading this page. Please try again.")

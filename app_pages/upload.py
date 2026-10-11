@@ -5,6 +5,8 @@ Allows users to upload a CSV or Excel file, or use the built-in sample dataset.
 Pre-warms the sample dataset for instant access.
 """
 
+import logging
+
 import streamlit as st
 import pandas as pd
 import hashlib
@@ -19,6 +21,8 @@ from app_pages.prewarming import (
     format_bytes,
 )
 from app_pages.navigation_registry import get_page
+
+logger = logging.getLogger(__name__)
 
 
 def upload_page():
@@ -157,8 +161,9 @@ def display_upload_widget():
                 st.session_state.uploaded_sheet_name = selected_sheet
                 st.success(f"✅ Loaded {uploaded_file.name} ({len(df)} rows, {len(df.columns)} columns)")
                 st.rerun()
-            except Exception as e:
-                st.error(f"❌ Failed to load dataset: {e}")
+            except Exception:
+                logger.exception("Failed to load uploaded dataset")
+                st.error("❌ Failed to load the dataset. Check the file and try again.")
 
 
 def display_dataset_preview(df: pd.DataFrame, file_name: str):

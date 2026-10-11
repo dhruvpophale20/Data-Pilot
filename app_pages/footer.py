@@ -58,7 +58,7 @@ def render_footer() -> None:
                 icon=":material/arrow_forward:",
                 use_container_width=True,
             ):
-                st.switch_page(get_page("Footer"))
+                st.switch_page(get_page("About The Developers"))
 
 
 def footer_page() -> None:

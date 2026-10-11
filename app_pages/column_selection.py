@@ -1,12 +1,15 @@
 """Standalone page for exporting a dataset with only user-selected columns."""
 
 import hashlib
+import logging
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 from app_pages.prewarming import get_excel_sheet_names, load_uploaded_dataset
+
+logger = logging.getLogger(__name__)
 
 
 def column_selection_page() -> None:
@@ -33,8 +36,9 @@ def column_selection_page() -> None:
     if extension in {".xlsx", ".xls"}:
         try:
             sheets = get_excel_sheet_names(file_bytes)
-        except Exception as exc:
-            st.error(f"Could not read workbook sheets: {exc}")
+        except Exception:
+            logger.exception("Could not read uploaded workbook sheets")
+            st.error("Could not read this workbook. Check the file and try again.")
             return
         if not sheets:
             st.error("This workbook does not contain any worksheets.")
@@ -47,8 +51,9 @@ def column_selection_page() -> None:
 
     try:
         df = load_uploaded_dataset(file_bytes, uploaded_file.name, sheet_name)
-    except Exception as exc:
-        st.error(f"Could not load dataset: {exc}")
+    except Exception:
+        logger.exception("Could not load uploaded dataset for column selection")
+        st.error("Could not load this dataset. Check the file and try again.")
         return
 
     st.write(f"**Source:** {uploaded_file.name} · **Shape:** {len(df):,} rows × {len(df.columns):,} columns")
