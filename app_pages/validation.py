@@ -21,6 +21,7 @@ from app_pages.prewarming import (
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,11 @@ def validation_page():
     init_session_state()
 
     # Page header
-    st.title("✅ Validation & Results")
-    st.caption("Comprehensive post-preprocessing validation and final dataset export.")
+    render_page_header(
+        "Validation & Results",
+        "Check the cleaned dataset, then download it and its reports.",
+        step=5,
+    )
 
     # Get datasets
     original_df, file_name = get_current_dataset()
@@ -40,13 +44,13 @@ def validation_page():
 
     if original_df is None:
         st.warning("⚠️ No dataset loaded. Please go to Upload Dataset first.")
-        if st.button("← Go to Upload", use_container_width=True):
+        if st.button("← Go to Upload", width="stretch"):
             st.switch_page(get_page("Upload Dataset"))
         return
 
     if processed_df is None:
         st.warning("⚠️ No processed dataset. Please run the Preprocessing Pipeline first.")
-        if st.button("← Go to Preprocessing Pipeline", use_container_width=True):
+        if st.button("← Go to Preprocessing Pipeline", width="stretch"):
             st.switch_page(get_page("Preprocessing Pipeline"))
         return
 
@@ -69,21 +73,16 @@ def validation_page():
             st.session_state.validation_config = validation_config
             st.session_state.validation_report = None
 
-        run_validation = st.button(
-            "🔍 Run Validation",
-            type="primary",
-            use_container_width=True,
-            disabled=st.session_state.get("validation_report") is not None,
-        )
+    # Keep the primary action beside the results it produces.
+    validation_report = st.session_state.get("validation_report")
+    if validation_report is None:
+        st.info("Ready to check the processed dataset with the options selected in the sidebar.")
+        run_validation = st.button("Run validation", type="primary", width="stretch")
+    else:
+        run_validation = st.button("Run validation again", width="stretch")
 
-        if st.session_state.get("validation_report") is not None:
-            if st.button("🔄 Re-run Validation", use_container_width=True):
-                if "validation_report" in st.session_state:
-                    del st.session_state.validation_report
-                st.rerun()
-
-    # Run validation
-    if run_validation or st.session_state.get("validation_report") is None:
+    if run_validation:
+        st.session_state.validation_report = None
         run_validation_with_progress(original_df, processed_df, check_missing, check_duplicates, allow_row_removal, allow_column_changes)
 
     # Display validation results
@@ -225,7 +224,7 @@ def display_export_section(
                 file_name=f"{export_name}.csv",
                 mime="text/csv",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
             )
         else:
             excel_buffer = BytesIO()
@@ -238,7 +237,7 @@ def display_export_section(
                 file_name=f"{export_name}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
             )
 
     with col2:
@@ -255,14 +254,14 @@ def display_export_section(
                 data=report_json,
                 file_name=f"{export_name}_validation_report.json",
                 mime="application/json",
-                use_container_width=True,
+                width="stretch",
             )
 
     # Download full pipeline report - persist visibility in session state
     if "show_full_report_download" not in st.session_state:
         st.session_state.show_full_report_download = False
 
-    if st.button("📄 Generate Full Pipeline Report", use_container_width=True):
+    if st.button("📄 Generate Full Pipeline Report", width="stretch"):
         st.session_state.show_full_report_download = True
         generate_full_report(original_df, processed_df, summary, validation_report, export_name)
     elif st.session_state.show_full_report_download and "last_export_name" in st.session_state:
@@ -274,7 +273,7 @@ def display_export_section(
             file_name=f"{st.session_state.last_export_name}_full_report.json",
             mime="application/json",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
 
 
@@ -326,7 +325,7 @@ def generate_full_report(
                 file_name=f"{export_name}_full_report.json",
                 mime="application/json",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
             )
 
             status.update(label="✅ Report generated!", state="complete")

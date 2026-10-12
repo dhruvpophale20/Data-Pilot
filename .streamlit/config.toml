@@ -2,13 +2,13 @@
 
 [theme]
 # Primary brand color
-primaryColor = "#2563EB"
+primaryColor = "#0F766E"
 # Background color for main content area
-backgroundColor = "#FFFFFF"
+backgroundColor = "#F8FAFC"
 # Background color for sidebar
-secondaryBackgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#EFF6F5"
 # Text color
-textColor = "#1E293B"
+textColor = "#172B3A"
 # Font family
 font = "sans-serif"
 

@@ -35,19 +35,28 @@ from app_pages.footer import footer_page, render_footer
 from app_pages.navigation_registry import register_pages
 
 # Create page objects (flat list for st.navigation)
-pages = [
+workflow_pages = [
     st.Page(upload_page, title="Upload Dataset", icon=":material/upload_file:"),
     st.Page(quality_analysis_page, title="Quality Analysis", icon=":material/analytics:"),
     st.Page(ai_recommendations_page, title="AI Recommendations", icon=":material/psychology:"),
     st.Page(preprocessing_page, title="Preprocessing Pipeline", icon=":material/build:"),
     st.Page(validation_page, title="Validation & Results", icon=":material/check_circle:"),
+]
+tool_pages = [
     st.Page(column_selection_page, title="Select Dataset Columns · Beta", icon=":material/view_column:"),
     st.Page(footer_page, title="About The Developers", icon=":material/notes:"),
 ]
+pages = workflow_pages + tool_pages
 
 # Navigation
 register_pages(pages)
-pg = st.navigation(pages, position="sidebar")
+pg = st.navigation(
+    {
+        "DATA WORKFLOW": workflow_pages,
+        "TOOLS & INFO": tool_pages,
+    },
+    position="sidebar",
+)
 try:
     pg.run()
     if pg.title != "About The Developers":

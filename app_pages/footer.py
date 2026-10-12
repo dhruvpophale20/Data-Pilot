@@ -3,6 +3,7 @@
 import streamlit as st
 
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 
 TEAM = [
@@ -56,18 +57,16 @@ def render_footer() -> None:
                 key="open_footer_page",
                 type="primary",
                 icon=":material/arrow_forward:",
-                use_container_width=True,
+                width="stretch",
             ):
                 st.switch_page(get_page("About The Developers"))
 
 
 def footer_page() -> None:
     """Render the full, editable Footer page using native Streamlit widgets."""
-    st.title("Data-Pilot")
-    st.subheader("AI-powered data quality assistant")
-    st.write(
-        "A workspace for understanding dataset quality, applying reviewed "
-        "preprocessing, and validating the result."
+    render_page_header(
+        "Data-Pilot",
+        "Understand dataset quality, apply reviewed cleaning actions, and export with confidence."
     )
 
     st.markdown("### What you can do")
@@ -94,13 +93,10 @@ def footer_page() -> None:
                 st.markdown(f"#### {member['name']}")
                 github, linkedin = st.columns(2)
                 with github:
-                    st.link_button("GitHub", member["github"], use_container_width=True)
+                    st.link_button("GitHub", member["github"], width="stretch")
                 with linkedin:
-                    st.link_button("LinkedIn", member["linkedin"], use_container_width=True)
+                    st.link_button("LinkedIn", member["linkedin"], width="stretch")
 
     st.divider()
     st.caption("Copyright 2026 Data-Pilot | Making datasets reliable, consistent, and ML-ready.")
 
-    st.markdown("### Your custom content")
-    st.info("Add your own sections, links, or other Streamlit elements below.")
-    # Add any custom Streamlit content below this line.

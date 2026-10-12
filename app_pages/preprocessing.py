@@ -18,6 +18,7 @@ from app_pages.prewarming import (
     format_bytes,
 )
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,11 @@ def preprocessing_page():
     init_session_state()
 
     # Page header
-    st.title("⚙️ Preprocessing Pipeline")
-    st.caption("Apply approved preprocessing actions to transform your dataset.")
+    render_page_header(
+        "Preprocessing Pipeline",
+        "Review and run the actions you approved to transform your dataset.",
+        step=4,
+    )
 
     # Get current dataset and approved actions
     df, file_name = get_current_dataset()
@@ -37,19 +41,16 @@ def preprocessing_page():
 
     if df is None:
         st.warning("⚠️ No dataset loaded. Please go to Upload Dataset first.")
-        if st.button("← Go to Upload", use_container_width=True):
+        if st.button("← Go to Upload", width="stretch"):
             st.switch_page(get_page("Upload Dataset"))
-        return
-
-    if not approved_actions:
-        st.warning("⚠️ No approved actions. Please go to AI Recommendations to approve actions.")
-        if st.button("← Go to AI Recommendations", use_container_width=True):
-            st.switch_page(get_page("AI Recommendations"))
         return
 
     # Sidebar: Pipeline options
     with st.sidebar:
-        st.header("Pipeline Actions")
+        st.header("Pipeline actions")
+
+        if not approved_actions:
+            st.caption("No actions have been approved yet.")
 
         for i, action in enumerate(approved_actions):
             with st.container(border=True):
@@ -65,20 +66,16 @@ def preprocessing_page():
         with st.expander("➕ Add Manual Action"):
             add_manual_action_ui()
 
-        run_pipeline = st.button(
-            "🚀 Run Pipeline",
-            type="primary",
-            use_container_width=True,
-            disabled=st.session_state.get("processed_df") is not None,
-        )
-
         if st.session_state.get("processed_df") is not None:
-            if st.button("🔄 Reset & Re-run", use_container_width=True):
+            if st.button("🔄 Reset & Re-run", width="stretch"):
                 reset_pipeline()
                 st.rerun()
 
     # Show approved actions summary
-    st.subheader("📋 Approved Actions")
+    st.subheader("Actions to apply")
+    if not approved_actions:
+        st.info("No actions are queued yet. Approve a recommendation or add a manual action from the sidebar.")
+
     for i, action in enumerate(approved_actions):
         with st.container(border=True):
             col1, col2 = st.columns([4, 1])
@@ -90,6 +87,14 @@ def preprocessing_page():
                 if st.button("🗑️", key=f"remove_{i}", help="Remove this action"):
                     st.session_state.approved_actions.pop(i)
                     st.rerun()
+
+    run_pipeline = st.button(
+        "Run preprocessing",
+        type="primary",
+        width="stretch",
+        disabled=not approved_actions or st.session_state.get("processed_df") is not None,
+        help="Apply the approved actions to the loaded dataset.",
+    )
 
     # Run pipeline
     if run_pipeline:
@@ -108,7 +113,7 @@ def preprocessing_page():
         with col1:
             st.info("✅ Preprocessing complete. Navigate to **Validation & Results** to verify the results.")
         with col2:
-            if st.button("Next: Validation & Results →", type="primary", use_container_width=True):
+            if st.button("Next: Validation & Results →", type="primary", width="stretch"):
                 st.switch_page(get_page("Validation & Results"))
 
 

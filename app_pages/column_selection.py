@@ -8,16 +8,17 @@ import pandas as pd
 import streamlit as st
 
 from app_pages.prewarming import get_excel_sheet_names, load_uploaded_dataset
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
 
 def column_selection_page() -> None:
     """Let users independently upload a file and choose columns to retain."""
-    st.title("🧩 Select Dataset Columns")
-    st.caption(
+    render_page_header(
+        "Select Dataset Columns",
         "Upload a dataset, choose the columns to keep, and download the result. "
-        "This page works independently of the analysis and preprocessing pipeline."
+        "This tool works independently of the analysis and preprocessing workflow."
     )
 
     uploaded_file = st.file_uploader(
@@ -57,6 +58,7 @@ def column_selection_page() -> None:
         return
 
     st.write(f"**Source:** {uploaded_file.name} · **Shape:** {len(df):,} rows × {len(df.columns):,} columns")
+    st.caption("All columns are selected by default. Remove any columns you do not want to include.")
     selected_columns = st.multiselect(
         "Columns to keep",
         options=list(df.columns),
@@ -81,6 +83,6 @@ def column_selection_page() -> None:
         file_name=download_name,
         mime="text/csv",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         key=f"column_selection_download_{file_hash}_{sheet_name or 'csv'}",
     )

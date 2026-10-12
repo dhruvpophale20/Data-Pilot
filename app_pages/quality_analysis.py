@@ -20,6 +20,7 @@ from app_pages.prewarming import (
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
@@ -29,15 +30,18 @@ def quality_analysis_page():
     init_session_state()
 
     # Page header
-    st.title("🔍 Quality Analysis")
-    st.caption("Comprehensive dataset profiling and quality checks with structured issue reporting.")
+    render_page_header(
+        "Quality Analysis",
+        "Review missing values, duplicates, data types, outliers, and other quality issues.",
+        step=2,
+    )
 
     # Get current dataset
     df, file_name = get_current_dataset()
 
     if df is None:
         st.warning("⚠️ No dataset loaded. Please upload a dataset or use the sample dataset first.")
-        if st.button("← Go to Upload", use_container_width=True):
+        if st.button("← Go to Upload", width="stretch"):
             st.switch_page(get_page("Upload Dataset"))
         return
 
@@ -64,15 +68,17 @@ def quality_analysis_page():
             help="Z-score threshold for outliers (default: 3.0)",
         ) if outlier_method == "zscore" else None
 
-        run_analysis = st.button(
-            "🔄 Run Quality Analysis",
-            type="primary",
-            use_container_width=True,
-        )
 
-    # Run analysis if button clicked or not yet run
-    if run_analysis or st.session_state.get("quality_report") is None:
+    run_analysis = st.button(
+        "Run quality analysis" if st.session_state.get("quality_report") is None else "Refresh quality analysis",
+        type="primary",
+        width="stretch",
+    )
+
+    if run_analysis:
         run_quality_analysis(df, outlier_method, outlier_multiplier, outlier_threshold)
+    elif st.session_state.get("quality_report") is None:
+        st.info("Choose your outlier settings in the sidebar, then run the analysis.")
 
     # Display results
     quality_report = st.session_state.get("quality_report")
@@ -85,7 +91,7 @@ def quality_analysis_page():
         with col1:
             st.info("✅ Quality analysis complete. Navigate to **AI Recommendations** for AI-powered preprocessing suggestions.")
         with col2:
-            if st.button("Next: AI Recommendations →", type="primary", use_container_width=True):
+            if st.button("Next: AI Recommendations →", type="primary", width="stretch"):
                 st.switch_page(get_page("AI Recommendations"))
 
 

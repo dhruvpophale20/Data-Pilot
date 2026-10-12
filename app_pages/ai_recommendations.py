@@ -14,10 +14,11 @@ from typing import Optional, List
 from app_pages.prewarming import (
     init_session_state,
     get_current_dataset,
-    generate_ai_recommendations_cached,
+    generate_ai_recommendations,
     get_severity_color,
 )
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,11 @@ def ai_recommendations_page():
     init_session_state()
 
     # Page header
-    st.title("🤖 AI Recommendations")
-    st.caption("AI-powered preprocessing recommendations using NVIDIA NIM (Nemotron 3.5).")
+    render_page_header(
+        "AI Recommendations",
+        "Review suggested data-cleaning actions before applying them.",
+        step=3,
+    )
 
     # Get current dataset and quality report
     df, file_name = get_current_dataset()
@@ -36,19 +40,19 @@ def ai_recommendations_page():
 
     if df is None:
         st.warning("⚠️ No dataset loaded. Please go to Upload Dataset first.")
-        if st.button("← Go to Upload", use_container_width=True):
+        if st.button("← Go to Upload", width="stretch"):
             st.switch_page(get_page("Upload Dataset"))
         return
 
     if quality_report is None:
         st.warning("⚠️ No quality report available. Please run Quality Analysis first.")
-        if st.button("← Go to Quality Analysis", use_container_width=True):
+        if st.button("← Go to Quality Analysis", width="stretch"):
             st.switch_page(get_page("Quality Analysis"))
         return
 
     # Sidebar: AI Configuration
     with st.sidebar:
-        st.header("AI Configuration")
+        st.header("Recommendation settings")
 
         # Check NIM client
         try:
@@ -56,7 +60,7 @@ def ai_recommendations_page():
             from ai.exceptions import MissingAPIKeyError
             client = NIMClient.from_env()
             st.success(f"✅ Connected to {client.model}")
-            st.caption(f"Temperature: {client.temperature} | Max Tokens: {client.max_tokens}")
+            st.caption(f"Model: {client.model}")
         except MissingAPIKeyError:
             st.error("❌ NVIDIA_API_KEY not configured")
             st.info("Set NVIDIA_API_KEY in your environment or Streamlit Cloud Secrets to enable AI recommendations")
@@ -72,14 +76,16 @@ def ai_recommendations_page():
             help="Uses shorter prompt for faster inference",
         )
 
-        generate_btn = st.button(
-            "🚀 Generate Recommendations",
-            type="primary",
-            use_container_width=True,
-        )
+        st.caption("Recommendations are created from your quality report and require your approval.")
+
+    generate_btn = st.button(
+        "Generate recommendations" if st.session_state.get("ai_recommendations") is None else "Generate new recommendations",
+        type="primary",
+        width="stretch",
+    )
 
     # Generate recommendations
-    if generate_btn or (st.session_state.get("ai_recommendations") is None and not st.session_state.get("ai_rec_failed", False)):
+    if generate_btn:
         generate_recommendations(quality_report, use_compact_prompt)
 
     # Display recommendations
@@ -93,7 +99,7 @@ def ai_recommendations_page():
         with col1:
             st.info("✅ AI recommendations generated. Navigate to **Preprocessing Pipeline** to approve and apply actions.")
         with col2:
-            if st.button("Next: Preprocessing Pipeline →", type="primary", use_container_width=True):
+            if st.button("Next: Preprocessing Pipeline →", type="primary", width="stretch"):
                 st.switch_page(get_page("Preprocessing Pipeline"))
 
 
@@ -105,7 +111,7 @@ def generate_recommendations(quality_report: dict, use_compact_prompt: bool = Tr
             st.write("🧠 Sending quality report to NVIDIA NIM...")
             st.write("⏳ Waiting for model response...")
 
-            result = generate_ai_recommendations_cached(
+            result = generate_ai_recommendations(
                 quality_report, use_compact_prompt=use_compact_prompt
             )
 
@@ -169,10 +175,10 @@ def display_ai_recommendations(ai_response: dict, df: pd.DataFrame):
     st.divider()
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("✅ Approve All", key="approve_all", use_container_width=True):
+        if st.button("✅ Approve All", key="approve_all", width="stretch"):
             approve_all_actions(recommendations)
     with col2:
-        if st.button("❌ Reject All", key="reject_all", use_container_width=True):
+        if st.button("❌ Reject All", key="reject_all", width="stretch"):
             reject_all_actions(recommendations)
     with col3:
         approved_count = len(st.session_state.approved_actions)

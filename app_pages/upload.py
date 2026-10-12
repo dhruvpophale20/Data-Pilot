@@ -21,6 +21,7 @@ from app_pages.prewarming import (
     format_bytes,
 )
 from app_pages.navigation_registry import get_page
+from app_pages.ui import render_page_header
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +32,11 @@ def upload_page():
     init_session_state()
 
     # Page header
-    st.title("📤 Upload Dataset")
-    st.caption("Upload a CSV or Excel file, or use the built-in sample dataset to get started.")
+    render_page_header(
+        "Upload Dataset",
+        "Start with a sample dataset or upload a CSV or Excel file.",
+        step=1,
+    )
 
     # Pre-warm the sample dataset in background
     sample_df = get_cached_sample_df()
@@ -42,7 +46,7 @@ def upload_page():
 
     # Sidebar: Dataset selection
     with st.sidebar:
-        st.header("Dataset Source")
+        st.header("Choose a dataset")
 
         # Default to sample only if no uploaded file exists
         default_use_sample = not has_uploaded_file
@@ -97,7 +101,7 @@ def show_proceed_button():
     with col1:
         st.info("✅ Dataset loaded. Navigate to **Quality Analysis** to continue.")
     with col2:
-        if st.button("Proceed to Quality Analysis →", type="primary", use_container_width=True, key="proceed_to_quality_analysis"):
+        if st.button("Proceed to Quality Analysis →", type="primary", width="stretch", key="proceed_to_quality_analysis"):
             st.switch_page(get_page("Quality Analysis"))
 
 
@@ -121,7 +125,8 @@ def display_sample_dataset(df: pd.DataFrame):
 
 def display_upload_widget():
     """Display file upload widget."""
-    st.subheader("Upload Your Dataset")
+    st.subheader("Upload your dataset")
+    st.caption("Supported formats: CSV, XLSX, and XLS · Maximum file size: 200 MB")
 
     uploaded_file = st.file_uploader(
         "Choose a CSV or Excel file",

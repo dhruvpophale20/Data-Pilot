@@ -145,11 +145,10 @@ def run_quality_checks_cached(
     return report.model_dump(exclude_none=True)
 
 
-@st.cache_data(ttl="5m", refresh_mode="background", show_spinner="Generating AI recommendations...")
-def generate_ai_recommendations_cached(
+def generate_ai_recommendations(
     quality_report_dict: dict, use_compact_prompt: bool = True
 ) -> dict:
-    """Cache AI recommendations."""
+    """Generate fresh AI recommendations for this request."""
     from ai.recommender import generate_recommendations
     from schemas.quality_schema import DatasetQualityReportSchema
     from ai.client import NIMClient
