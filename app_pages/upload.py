@@ -135,40 +135,46 @@ def display_upload_widget():
     )
 
     if uploaded_file is not None:
-        with st.spinner("Loading dataset..."):
-            try:
-                file_bytes = uploaded_file.getvalue()
-                extension = uploaded_file.name.rsplit(".", 1)[-1].lower()
-                selected_sheet = None
-                if extension in {"xlsx", "xls"}:
-                    sheet_names = get_excel_sheet_names(file_bytes)
-                    if not sheet_names:
-                        raise ValueError("The workbook contains no worksheets.")
-                    file_fingerprint = hashlib.sha256(file_bytes).hexdigest()
-                    selected_sheet = st.selectbox(
-                        "Worksheet to analyze",
-                        sheet_names,
-                        key=f"excel_sheet_{file_fingerprint}",
-                        help="Only the selected worksheet will be analyzed and exported.",
-                    )
-                    if not st.button("Load selected worksheet", key=f"load_sheet_{file_fingerprint}"):
-                        return
+        progress = st.progress(0, text="Preparing uploaded file...")
+        try:
+            file_bytes = uploaded_file.getvalue()
+            progress.progress(15, text="File received. Checking its contents...")
+            extension = uploaded_file.name.rsplit(".", 1)[-1].lower()
+            selected_sheet = None
+            if extension in {"xlsx", "xls"}:
+                sheet_names = get_excel_sheet_names(file_bytes)
+                if not sheet_names:
+                    raise ValueError("The workbook contains no worksheets.")
+                progress.progress(35, text="Workbook checked. Choose a worksheet to load.")
+                file_fingerprint = hashlib.sha256(file_bytes).hexdigest()
+                selected_sheet = st.selectbox(
+                    "Worksheet to analyze",
+                    sheet_names,
+                    key=f"excel_sheet_{file_fingerprint}",
+                    help="Only the selected worksheet will be analyzed and exported.",
+                )
+                if not st.button("Load selected worksheet", key=f"load_sheet_{file_fingerprint}"):
+                    progress.empty()
+                    return
 
-                fingerprint = hashlib.sha256(
-                    file_bytes + (selected_sheet or "").encode("utf-8")
-                ).hexdigest()
-                if st.session_state.get("uploaded_file_fingerprint") != fingerprint:
-                    reset_session_state()
-                df = load_uploaded_dataset(file_bytes, uploaded_file.name, selected_sheet)
-                st.session_state.uploaded_df = df
-                st.session_state.uploaded_file_name = uploaded_file.name
-                st.session_state.uploaded_file_fingerprint = fingerprint
-                st.session_state.uploaded_sheet_name = selected_sheet
-                st.success(f"✅ Loaded {uploaded_file.name} ({len(df)} rows, {len(df.columns)} columns)")
-                st.rerun()
-            except Exception:
-                logger.exception("Failed to load uploaded dataset")
-                st.error("❌ Failed to load the dataset. Check the file and try again.")
+            fingerprint = hashlib.sha256(
+                file_bytes + (selected_sheet or "").encode("utf-8")
+            ).hexdigest()
+            if st.session_state.get("uploaded_file_fingerprint") != fingerprint:
+                reset_session_state()
+            progress.progress(55, text="Loading dataset...")
+            df = load_uploaded_dataset(file_bytes, uploaded_file.name, selected_sheet)
+            progress.progress(100, text="Dataset loaded.")
+            st.session_state.uploaded_df = df
+            st.session_state.uploaded_file_name = uploaded_file.name
+            st.session_state.uploaded_file_fingerprint = fingerprint
+            st.session_state.uploaded_sheet_name = selected_sheet
+            st.success(f"✅ Loaded {uploaded_file.name} ({len(df)} rows, {len(df.columns)} columns)")
+            st.rerun()
+        except Exception:
+            logger.exception("Failed to load uploaded dataset")
+            progress.empty()
+            st.error("❌ Failed to load the dataset. Check the file and try again.")
 
 
 def display_dataset_preview(df: pd.DataFrame, file_name: str):
